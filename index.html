@@ -16,6 +16,7 @@
       <h1>Cloud Native Labor</h1>
       <p class="hero-sub">Felhő • konténerek • Docker • Compose • registry • Kubernetes • CI/CD</p>
       <p class="lead">6 × 45 perces, egymásra épülő gyakorlati projekt. Minden modul rövid elméletből, végrehajtandó feladatból, ellenőrzésből és képernyőképes bizonyítékból áll.</p>
+      <p class="version-badge">v2.1 • Codespaces + Redis javított kiadás</p>
       <div class="hero-buttons">
         <a class="btn primary" href="#modulok">Labor indítása</a>
         <a class="btn secondary" href="downloads/cloudlab_starter.zip" download>Starter csomag</a>
@@ -112,6 +113,7 @@
 ├── Dockerfile
 ├── compose.yaml
 ├── k8s.yaml
+├── check-compose.sh
 ├── status-site/
 │   └── index.html
 ├── .devcontainer/
@@ -120,6 +122,7 @@
     └── workflows/
         └── container-ci.yml</code></pre>
     <div class="expected"><strong>Akkor jó:</strong> a <code>.github</code> és <code>.devcontainer</code> mappa is megvan. Ezek ponttal kezdődnek, de nem szabad kihagyni őket.</div>
+    <div class="notice"><strong>Nagyon fontos:</strong> a starter ZIP <em>tartalmát</em> kell a tanulói repository gyökerébe tenni. Ne legyen a repositoryban plusz <code>starter/</code> vagy <code>cloudlab_starter/</code> szint. A későbbi <code>docker build -t cloudlab:1.0 .</code> parancs csak akkor működik, ha a <code>Dockerfile</code> az aktuális repository-gyökérben van.</div>
   </div>
 </section>
 
@@ -156,15 +159,17 @@
     </ol>
     <div class="expected"><strong>Akkor jó:</strong> megnyílik az új repository és a fejlécben a <code>cloud-native-labor</code> név látszik.</div>
 
-    <h4 class="step-title">2. A starter fájlok feltöltése</h4>
+    <h4 class="step-title">2. A starter fájlok feltöltése – a repository GYÖKERÉBE</h4>
     <ol class="student-steps">
       <li>Csomagold ki a letöltött <code>cloudlab_starter.zip</code> fájlt.</li>
+      <li>Nyisd meg a kibontott mappát, és <strong>a benne lévő fájlokat és mappákat</strong> töltsd fel – ne magát a külső <code>cloudlab_starter</code> mappát.</li>
       <li>GitHubon kattints: <strong>Add file → Upload files</strong>.</li>
-      <li>Húzd be a starter mappa teljes tartalmát. A <code>.github</code>, <code>.devcontainer</code> és <code>status-site</code> mappát is töltsd fel.</li>
-      <li>Commit message: <code>CloudLab starter projekt</code>.</li>
-      <li>Kattints a <strong>Commit changes</strong> gombra.</li>
+      <li>Töltsd fel az <code>app.py</code>, <code>Dockerfile</code>, <code>compose.yaml</code>, <code>k8s.yaml</code>, <code>requirements.txt</code>, <code>check-compose.sh</code> és <code>status-site</code> elemeket.</li>
+      <li>Ellenőrizd külön, hogy a <code>.github</code> és <code>.devcontainer</code> mappa is felkerült. Windowsban a ponttal kezdődő mappák általában láthatók, de ezt mindig ellenőrizd a GitHub fájllistájában.</li>
+      <li>Commit message: <code>CloudLab starter projekt</code>, majd <strong>Commit changes</strong>.</li>
     </ol>
-    <div class="expected"><strong>Akkor jó:</strong> a repository gyökerében látszik az <code>app.py</code>, <code>Dockerfile</code>, <code>compose.yaml</code> és <code>k8s.yaml</code>.</div>
+    <div class="expected"><strong>Akkor jó:</strong> a repository <strong>gyökerében</strong> közvetlenül látszik az <code>app.py</code>, <code>Dockerfile</code>, <code>compose.yaml</code> és <code>k8s.yaml</code>. Nem kell előbb <code>cd starter</code> parancsot kiadnod.</div>
+    <div class="trouble"><strong>Ha a ponttal kezdődő mappák hiányoznak:</strong> GitHubon válaszd az <strong>Add file → Create new file</strong> lehetőséget. A fájlnév mezőbe írhatsz teljes útvonalat, például <code>.devcontainer/devcontainer.json</code> vagy <code>.github/workflows/container-ci.yml</code>. Így a GitHub létrehozza a mappákat is. A fájlok tartalmát a letöltött starter csomagból másold be.</div>
 
     <h4 class="step-title">3. Codespace indítása</h4>
     <ol class="student-steps">
@@ -178,7 +183,9 @@
     <h4 class="step-title">4. Ellenőrizd, hogy jó helyen vagy</h4>
     <div class="cmd" data-copy><code>pwd
 ls -la</code><button>Másolás</button></div>
-    <p>A listában keresd az <code>app.py</code>, <code>Dockerfile</code>, <code>compose.yaml</code>, <code>k8s.yaml</code> fájlokat.</p>
+    <p>A listában keresd az <code>app.py</code>, <code>Dockerfile</code>, <code>compose.yaml</code>, <code>k8s.yaml</code> fájlokat. Ha a <code>Dockerfile</code> csak egy <code>starter</code> almappában látszik, állj meg: rossz könyvtárstruktúrát töltöttél fel.</p>
+    <div class="cmd" data-copy><code>test -f Dockerfile &amp;&amp; echo "OK: repository gyökér" || echo "HIBA: nincs itt Dockerfile"</code><button>Másolás</button></div>
+    <div class="checkpoint"><b>Elvárt:</b> <code>OK: repository gyökér</code>.</div>
 
     <h4 class="step-title">5. Környezet verzióinak ellenőrzése</h4>
     <div class="cmd" data-copy><code>uname -a
@@ -199,6 +206,7 @@ python app.py</code><button>Másolás</button></div>
       <li>A megnyíló oldalon írd az URL végére: <code>/health</code>.</li>
     </ol>
     <div class="checkpoint"><b>Elvárt válasz:</b> <code>{"status":"ok"}</code>.</div>
+    <div class="notice"><strong>Miért nincs még számláló?</strong> A sima <code>python app.py</code> futásnál nem indítottunk Redis szolgáltatást. A főoldalon ezért a Redis „Nincs konfigurálva ebben a futási módban” állapota <strong>helyes</strong>. A látogatásszámláló a 3. modul Docker Compose részében aktiválódik.</div>
     <div class="trouble"><strong>Ha a 8080-as port nem látszik:</strong> a PORTS panelen válaszd az <strong>Add Port</strong> lehetőséget és add meg: <code>8080</code>. Ha a Python fut, de nincs oldal, ellenőrizd, hogy nem állítottad-e le a programot.</div>
     <div class="evidence"><strong>Bizonyíték 01:</strong> a terminál, amelyen látszanak a Python, Git, Docker és kubectl verziók.<br><strong>Bizonyíték 02:</strong> a böngészőben működő CloudLab oldal vagy a <code>/health</code> válasz.</div>
     <div class="question"><b>Írd le 1 mondatban:</b> mi fut a saját gépeden, és mi fut a GitHub felhőjében?</div>
@@ -275,22 +283,39 @@ curl http://127.0.0.1:8082</code><button>Másolás</button></div>
 docker image ls</code><button>Másolás</button></div>
     <div class="expected"><strong>Akkor jó:</strong> megjelenik a <code>cloudlab</code> image <code>1.0</code> taggel.</div>
 
-    <h4 class="step-title">3. Saját container tesztelése</h4>
+    <h4 class="step-title">3. Saját container tesztelése – Redis nélkül</h4>
     <div class="cmd" data-copy><code>docker run -d --name cloudlab -p 8080:8080 cloudlab:1.0
 docker ps
 curl http://127.0.0.1:8080/health
 curl http://127.0.0.1:8080/api/info</code><button>Másolás</button></div>
-    <div class="checkpoint"><b>Elvárt:</b> a health válasz OK, az info válaszban az <code>app</code> értéke <code>cloudlab</code>.</div>
+    <div class="checkpoint"><b>Elvárt:</b> a health válasz OK, az info válaszban az <code>app</code> értéke <code>cloudlab</code>. Az önálló containerben <code>redis:false</code> / <code>redis_configured:false</code> <strong>nem hiba</strong>, mert még nem indítottunk Redis szolgáltatást.</div>
 
-    <h4 class="step-title">4. Compose – web + Redis</h4>
-    <p>Állítsd le az előző önálló containert, mert ugyanazt a 8080-as portot fogjuk használni:</p>
-    <div class="cmd" data-copy><code>docker rm -f cloudlab
-docker compose up -d --build
+    <h4 class="step-title">4. Compose – web + Redis, Codespaces-kompatibilis módon</h4>
+    <p>Állítsd le az előző önálló containert, mert a Compose projekt is a 8080-as portot fogja használni:</p>
+    <div class="cmd" data-copy><code>docker rm -f cloudlab 2&gt;/dev/null || true
+docker compose down --remove-orphans
+docker compose up -d --build --force-recreate
 docker compose ps</code><button>Másolás</button></div>
-    <p>A listában két szolgáltatást kell látnod: <strong>web</strong> és <strong>redis</strong>.</p>
+    <p>A listában két szolgáltatást kell látnod: <strong>web</strong> és <strong>redis</strong>. A Redis állapota legyen <code>healthy</code>.</p>
+
+    <div class="concept"><strong>Miért különleges a compose.yaml?</strong> GitHub Codespaces alatt Docker-in-Docker környezetben előfordulhat, hogy a hagyományos Docker bridge hálózaton a <code>web → redis:6379</code> kapcsolat timeoutol. Ezért a starterben a web szolgáltatás a Redis hálózati névterét használja: <code>network_mode: "service:redis"</code>. Így a két külön konténer ugyanazon hálózati névtérből éri el egymást, és a Flask a <code>127.0.0.1:6379</code> címen kapcsolódik a Redishez.</div>
+
+    <h4 class="step-title">4/A. Redis önellenőrzés</h4>
+    <div class="cmd" data-copy><code>docker compose exec -T redis redis-cli ping</code><button>Másolás</button></div>
+    <div class="checkpoint"><b>Elvárt:</b> <code>PONG</code>.</div>
+
+    <h4 class="step-title">4/B. Web container → Redis kapcsolat</h4>
+    <div class="cmd" data-copy><code>docker compose exec -T web python -c "import redis; r=redis.Redis(host='127.0.0.1',port=6379,socket_connect_timeout=2,socket_timeout=2); print(r.ping())"</code><button>Másolás</button></div>
+    <div class="checkpoint"><b>Elvárt:</b> <code>True</code>. Ha ez megvan, a Python alkalmazás valóban eléri a Redist.</div>
+
+    <h4 class="step-title">4/C. API és látogatásszámláló ellenőrzése</h4>
     <div class="cmd" data-copy><code>curl http://127.0.0.1:8080/api/info
-docker compose logs --tail=30</code><button>Másolás</button></div>
-    <div class="expected"><strong>Akkor jó:</strong> az <code>/api/info</code> válaszban a <code>redis</code> értéke <code>true</code>.</div>
+curl -s http://127.0.0.1:8080/ &gt;/dev/null
+curl -s http://127.0.0.1:8080/ &gt;/dev/null
+docker compose exec -T redis redis-cli GET cloudlab_visits</code><button>Másolás</button></div>
+    <div class="expected"><strong>Akkor jó:</strong> az API-ban <code>"redis":true</code>, a Redis parancs pedig egy növekvő számot ad vissza. A PORTS → 8080 → Open in Browser nézetben az F5 minden alkalommal növeli a látogatásszámlálót.</div>
+    <div class="notice"><strong>Gyors automatikus ellenőrzés:</strong> a starterben található <code>check-compose.sh</code>. Futtasd: <code>bash check-compose.sh</code>. Egyben ellenőrzi a Redis PING-et, a Python → Redis kapcsolatot, az API-t és a számlálót.</div>
+    <div class="trouble"><strong>Ha a számláló nem nő:</strong> először <code>docker compose ps</code>, majd <code>docker compose exec -T redis redis-cli ping</code>, végül a fenti Python Redis teszt. Ne módosíts hálózati subnetet találomra. A starter működő Codespaces-beállítása a <code>network_mode: "service:redis"</code> és <code>REDIS_HOST=127.0.0.1</code>.</div>
 
     <h4 class="step-title">5. Tartós adat – volume teszt</h4>
     <ol class="student-steps">
@@ -317,7 +342,7 @@ docker tag cloudlab:1.0 SAJAT_DOCKERHUB_NEV/cloudlab:1.0
 docker push SAJAT_DOCKERHUB_NEV/cloudlab:1.0</code><button>Másolás</button></div>
     <div class="expected"><strong>Akkor jó:</strong> Docker Hub webfelületén a <code>cloudlab</code> repositoryban látszik az <code>1.0</code> tag.</div>
     <div class="trouble"><strong>Ha „denied: requested access to the resource is denied”:</strong> általában hibás a Docker Hub felhasználónév, nincs bejelentkezve a CLI, vagy nem a saját repositorydat tageled.</div>
-    <div class="evidence"><strong>Bizonyíték 05:</strong> saját <code>cloudlab:1.0</code> image a terminálban.<br><strong>Bizonyíték 06:</strong> <code>docker compose ps</code>, web és redis futó állapotban.<br><strong>Bizonyíték 07:</strong> Docker Hub weboldal, <code>cloudlab:1.0</code> taggel. Titkos tokent ne mutass!</div>
+    <div class="evidence"><strong>Bizonyíték 05:</strong> saját <code>cloudlab:1.0</code> image a terminálban.<br><strong>Bizonyíték 06:</strong> egy képen vagy egymást követő képeken: <code>docker compose ps</code>, Redis <code>PONG</code>, Python Redis teszt <code>True</code>, valamint működő/növekvő <code>cloudlab_visits</code> számláló.<br><strong>Bizonyíték 07:</strong> Docker Hub weboldal, <code>cloudlab:1.0</code> taggel. Titkos tokent ne mutass!</div>
   </article>
 
 
@@ -329,6 +354,7 @@ docker push SAJAT_DOCKERHUB_NEV/cloudlab:1.0</code><button>Másolás</button></d
     </div>
 
     <div class="concept"><strong>Mit tanulsz?</strong> A Kubernetesben nem közvetlenül „konténert indítasz”, hanem egy kívánt állapotot írsz le. A Deployment gondoskodik a Podokról, a Service stabil hálózati elérést ad.</div>
+    <div class="notice"><strong>Fontos:</strong> a Kubernetes-modul szándékosan csak a CloudLab webalkalmazást telepíti, Redis nélkül. Itt a fő cél a Deployment, Service, skálázás, self-healing és rollout. Ezért Kubernetesben a <code>/api/info</code> <code>redis:false</code> értéke helyes.</div>
 
     <h4 class="step-title">1. Kubernetes labor megnyitása</h4>
     <ol class="student-steps">
@@ -591,6 +617,6 @@ git push</code><button>Másolás</button></div>
   </div>
 </section>
 </main>
-<footer><div class="wrap">Cloud Native Labor • Szerverek és felhőszolgáltatások • oktatói gyakorlati weboldal</div></footer>
+<footer><div class="wrap">Cloud Native Labor v2.1 • Szerverek és felhőszolgáltatások • Codespaces + Redis javított kiadás</div></footer>
 </body>
 </html>

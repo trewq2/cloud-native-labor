@@ -35,3 +35,5 @@ footer{margin-top:30px;background:#dfe8ed;color:#53636f;padding:22px 0;text-alig
 .wide-card{margin-top:18px}
 .file-tree{background:#102533;color:#dceaf0;border-radius:10px;padding:15px;overflow:auto}
 .small-note{font-size:12px;color:var(--muted)}
+
+.version-badge{display:inline-block;margin:4px 0 0;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);font-size:12px;font-weight:900;letter-spacing:.03em}
